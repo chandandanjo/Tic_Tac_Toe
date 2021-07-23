@@ -1,6 +1,8 @@
+import ctypes
 import turtle
-import random
-import time
+# import random
+# import time
+import numpy as np
 
 wn = turtle.Screen()
 wn.title("Tic Tac Toe")
@@ -46,45 +48,42 @@ c8 = 0
 c9 = 0
 no_of_moves = 0
 
-xclick = 0
-yclick = 0
-
-x = grid.xcor()
-y = grid.ycor()
-
-r1 = [c1, c4, c7]
-r2 = [c2, c5, c8]
-r3 = [c3, c6, c9]
-d1 = [r1[0], r2[1], r3[2]]
-d2 = [r1[2], r2[1], r3[0]]
-matrix = [r1, r2, r3]
+x_click = 0
+y_click = 0
 
 
-def update_matrices():
-    global r1, r2, r3, d1, d2, matrix
-    r1, r2, r3, d1, d2, matrix = [c1, c4, c7], [c2, c5, c8], [c3, c6, c9], [r1[0], r2[1], r3[2]], [r1[2], r2[1],
-                                                                                                   r3[0]], [r1, r2, r3]
+matrix = np.array([[c1, c4, c7], [c2, c5, c8], [c3, c6, c9]])
+vert = matrix.sum(axis=0)
+hor = matrix.sum(axis=1)
+d1 = np.trace(matrix)
+d2 = np.fliplr(matrix).trace()
 
 
 def win():
     global p_cross, p_circle
-    for index in matrix:
-        if sum(index) == 3:
+    for index in vert:
+        if index == 3:
             p_cross = 1
-        elif sum(index) == -3:
+        elif index == -3:
             p_circle = 1
-    for vert in map(sum, zip(r1, r2, r3)):
-        if vert == 3:
+    for index in hor:
+        if index == 3:
             p_cross = 1
-        elif vert == -3:
+        elif index == -3:
             p_circle = 1
-    if sum(d1) or sum(d2) == 3:
+    if d1 == 3 or d2 == 3:
         p_cross = 1
-    elif sum(d1) or sum(d2) == -3:
+    elif d1 == -3 or d2 == -3:
         p_circle = 1
-    print(c1, c2, c3, c4, c5, c6, c7, c8, c9)
-    print(r1,r2,r3)
-    print(p_cross,p_circle)
+
+
+def update_matrices():
+    global matrix, vert, hor, d1, d2
+    matrix = np.array([[c1, c4, c7], [c2, c5, c8], [c3, c6, c9]])
+    vert = matrix.sum(axis=0)
+    hor = matrix.sum(axis=1)
+    d1 = np.trace(matrix)
+    d2 = np.fliplr(matrix).trace()
 
 
 def cross(x, y):
@@ -119,95 +118,103 @@ def circle(x, y):
     win()
 
 
-def modifyglobalvariables(rawx, rawy):
-    global xclick
-    global yclick
-    xclick = int(rawx // 1)
-    yclick = int(rawy // 1)
+def modify_global_variables(raw_x, raw_y):
+    global x_click
+    global y_click
+    x_click = int(raw_x // 1)
+    y_click = int(raw_y // 1)
 
     global shape
-    if shape == 1:
-        def make_cross(xclick, yclick):
+    if shape == 1 and p_cross == 0 and p_circle == 0:
+
+        def make_cross():
             global c1, c2, c3, c4, c5, c6, c7, c8, c9
-            if -300 < xclick < -100 and 100 < yclick < 300 and c1 == 0:
+            if -300 < x_click < -100 and 100 < y_click < 300 and c1 == 0:
                 c1 = 1
                 cross(-300, 100)
 
-            if -300 < xclick < -100 and -100 < yclick < 100 and c2 == 0:
+            if -300 < x_click < -100 and -100 < y_click < 100 and c2 == 0:
                 c2 = 1
                 cross(-300, -100)
 
-            if -300 < xclick < -100 and -300 < yclick < -100 and c3 == 0:
+            if -300 < x_click < -100 and -300 < y_click < -100 and c3 == 0:
                 c3 = 1
                 cross(-300, -300)
 
-            if -100 < xclick < 100 and 100 < yclick < 300 and c4 == 0:
+            if -100 < x_click < 100 and 100 < y_click < 300 and c4 == 0:
                 c4 = 1
                 cross(-100, 100)
 
-            if -100 < xclick < 100 and -100 < yclick < 100 and c5 == 0:
+            if -100 < x_click < 100 and -100 < y_click < 100 and c5 == 0:
                 c5 = 1
                 cross(-100, -100)
 
-            if -100 < xclick < 100 and -300 < yclick < -100 and c6 == 0:
+            if -100 < x_click < 100 and -300 < y_click < -100 and c6 == 0:
                 c6 = 1
                 cross(-100, -300)
 
-            if 100 < xclick < 300 and 100 < yclick < 300 and c7 == 0:
+            if 100 < x_click < 300 and 100 < y_click < 300 and c7 == 0:
                 c7 = 1
                 cross(100, 100)
 
-            if 100 < xclick < 300 and -100 < yclick < 100 and c8 == 0:
+            if 100 < x_click < 300 and -100 < y_click < 100 and c8 == 0:
                 c8 = 1
                 cross(100, -100)
 
-            if 100 < xclick < 300 and -300 < yclick < -100 and c9 == 0:
+            if 100 < x_click < 300 and -300 < y_click < -100 and c9 == 0:
                 c9 = 1
                 cross(100, -300)
 
-        return make_cross(xclick, yclick)
-    else:
-        def make_circle(xclick, yclick):
+        return make_cross()
+    elif shape == 0 and p_cross == 0 and p_circle == 0:
+
+        def make_circle():
             global c1, c2, c3, c4, c5, c6, c7, c8, c9
-            if -300 < xclick < -100 and 100 < yclick < 300 and c1 == 0:
+            if -300 < x_click < -100 and 100 < y_click < 300 and c1 == 0:
                 c1 = -1
                 circle(-200, 100)
 
-            if -300 < xclick < -100 and -100 < yclick < 100 and c2 == 0:
+            if -300 < x_click < -100 and -100 < y_click < 100 and c2 == 0:
                 c2 = -1
                 circle(-200, -100)
 
-            if -300 < xclick < -100 and -300 < yclick < -100 and c3 == 0:
+            if -300 < x_click < -100 and -300 < y_click < -100 and c3 == 0:
                 c3 = -1
                 circle(-200, -300)
 
-            if -100 < xclick < 100 and 100 < yclick < 300 and c4 == 0:
+            if -100 < x_click < 100 and 100 < y_click < 300 and c4 == 0:
                 c4 = -1
                 circle(0, 100)
 
-            if -100 < xclick < 100 and -100 < yclick < 100 and c5 == 0:
+            if -100 < x_click < 100 and -100 < y_click < 100 and c5 == 0:
                 c5 = -1
                 circle(0, -100)
 
-            if -100 < xclick < 100 and -300 < yclick < -100 and c6 == 0:
+            if -100 < x_click < 100 and -300 < y_click < -100 and c6 == 0:
                 c6 = -1
                 circle(0, -300)
 
-            if 100 < xclick < 300 and 100 < yclick < 300 and c7 == 0:
+            if 100 < x_click < 300 and 100 < y_click < 300 and c7 == 0:
                 c7 = -1
                 circle(200, 100)
 
-            if 100 < xclick < 300 and -100 < yclick < 100 and c8 == 0:
+            if 100 < x_click < 300 and -100 < y_click < 100 and c8 == 0:
                 c8 = -1
                 circle(200, -100)
 
-            if 100 < xclick < 300 and -300 < yclick < -100 and c9 == 0:
+            if 100 < x_click < 300 and -300 < y_click < -100 and c9 == 0:
                 c9 = -1
                 circle(200, -300)
 
-        return make_circle(xclick, yclick)
+        return make_circle()
+    else:
+        wn.reset()
+        message_box = ctypes.windll.user32.MessageBoxW
+        if p_cross == 1:
+            message_box(None, 'Player cross', 'Match Winner', 0)
+        if p_circle == 1:
+            message_box(None, 'Player circle', 'Match Winner', 0)
 
 
-
-wn.onscreenclick(modifyglobalvariables)
+wn.onscreenclick(modify_global_variables)
 wn.mainloop()
