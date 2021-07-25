@@ -1,8 +1,8 @@
 import ctypes
+import time
 import turtle
-# import random
-# import time
 import numpy as np
+from pynput.mouse import Button, Controller
 
 wn = turtle.Screen()
 wn.title("Tic Tac Toe")
@@ -16,26 +16,32 @@ grid.color("White")
 grid.speed(0)
 grid.pensize(width=5)
 grid.penup()
-grid.goto(-300, 300)
-grid.pendown()
-for i in range(4):
-    grid.forward(600)
-    grid.right(90)
-    for j in range(4):
+
+
+def grid_formation():
+    grid.goto(-300, 300)
+    grid.pendown()
+    for i in range(4):
+        grid.forward(600)
+        grid.right(90)
+        for j in range(4):
+            grid.forward(200)
+            grid.right(90)
+    grid.penup()
+    grid.goto(-100, 100)
+    grid.pendown()
+    for k in range(4):
         grid.forward(200)
         grid.right(90)
-grid.penup()
-grid.goto(-100, 100)
-grid.pendown()
-for k in range(4):
-    grid.forward(200)
-    grid.right(90)
-grid.penup()
+    grid.penup()
+
 
 shape = wn.numinput("Cross or Circle ?", "For cross enter: 1, For circle enter: 0", minval=0, maxval=1)
 
 p_cross = 0
 p_circle = 0
+
+mouse = Controller()
 
 c1 = 0
 c2 = 0
@@ -50,7 +56,6 @@ no_of_moves = 0
 
 x_click = 0
 y_click = 0
-
 
 matrix = np.array([[c1, c4, c7], [c2, c5, c8], [c3, c6, c9]])
 vert = matrix.sum(axis=0)
@@ -77,6 +82,27 @@ def win():
         p_circle = 1
 
 
+def score_reset():
+    global c1, c2, c3, c4, c5, c6, c7, c8, c9, p_circle, p_cross
+    c1, c2, c3, c4, c5, c6, c7, c8, c9, p_circle, p_cross = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    update_matrices()
+    wn.clearscreen()
+    wn.bgcolor("black")
+    wn.tracer(0)
+    wn.listen()
+    grid_formation()
+    grid_formation()
+    wn.onscreenclick(modify_global_variables)
+
+
+def match_winner_declaration():
+    message_box = ctypes.windll.user32.MessageBoxW
+    if p_cross == 1:
+        message_box(None, 'Player cross wins!', 'Match Result', 0)
+    if p_circle == 1:
+        message_box(None, 'Player circle wins!', 'Match Result', 0)
+
+
 def update_matrices():
     global matrix, vert, hor, d1, d2
     matrix = np.array([[c1, c4, c7], [c2, c5, c8], [c3, c6, c9]])
@@ -101,6 +127,7 @@ def cross(x, y):
         shape = 0
     update_matrices()
     win()
+    mouse.click(Button.left, 2)
 
 
 def circle(x, y):
@@ -116,6 +143,7 @@ def circle(x, y):
         shape = 0
     update_matrices()
     win()
+    mouse.click(Button.left, 2)
 
 
 def modify_global_variables(raw_x, raw_y):
@@ -208,13 +236,10 @@ def modify_global_variables(raw_x, raw_y):
 
         return make_circle()
     else:
-        wn.reset()
-        message_box = ctypes.windll.user32.MessageBoxW
-        if p_cross == 1:
-            message_box(None, 'Player cross', 'Match Winner', 0)
-        if p_circle == 1:
-            message_box(None, 'Player circle', 'Match Winner', 0)
+        match_winner_declaration()
+        score_reset()
 
 
+grid_formation()
 wn.onscreenclick(modify_global_variables)
 wn.mainloop()
