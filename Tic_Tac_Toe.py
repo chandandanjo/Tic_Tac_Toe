@@ -1,245 +1,229 @@
 import ctypes
-import time
 import turtle
 import numpy as np
 from pynput.mouse import Button, Controller
 
-wn = turtle.Screen()
-wn.title("Tic Tac Toe")
-wn.setup(width=600, height=600)
-wn.bgcolor("Black")
-wn.tracer(0)
-wn.listen()
 
-grid = turtle.Turtle()
-grid.color("White")
-grid.speed(0)
-grid.pensize(width=5)
-grid.penup()
+class Game:
+    def __init__(self):
+        self.wn = turtle.Screen()
+        self.wn.title("Tic Tac Toe")
+        self.wn.setup(width=600, height=600)
+        self.wn.bgcolor("Black")
+        self.wn.tracer(0)
+        self.wn.listen()
 
+        self.grid = turtle.Turtle()
+        self.grid.color("White")
+        self.grid.speed(0)
+        self.grid.pensize(width=5)
+        self.grid.penup()
 
-def grid_formation():
-    grid.goto(-300, 300)
-    grid.pendown()
-    for i in range(4):
-        grid.forward(600)
-        grid.right(90)
-        for j in range(4):
-            grid.forward(200)
-            grid.right(90)
-    grid.penup()
-    grid.goto(-100, 100)
-    grid.pendown()
-    for k in range(4):
-        grid.forward(200)
-        grid.right(90)
-    grid.penup()
+        self.shape = self.wn.numinput("Cross or Circle ?", "For cross enter: 1, For circle enter: 0", minval=0,
+                                      maxval=1)
+        self.p_cross = 0
+        self.p_circle = 0
 
+        self.mouse = Controller()
 
-shape = wn.numinput("Cross or Circle ?", "For cross enter: 1, For circle enter: 0", minval=0, maxval=1)
+        self.c1 = 0
+        self.c2 = 0
+        self.c3 = 0
+        self.c4 = 0
+        self.c5 = 0
+        self.c6 = 0
+        self.c7 = 0
+        self.c8 = 0
+        self.c9 = 0
+        self.no_of_moves = 0
 
-p_cross = 0
-p_circle = 0
+        self.x_click = 0
+        self.y_click = 0
 
-mouse = Controller()
+        self.matrix = np.array([[self.c1, self.c4, self.c7], [self.c2, self.c5, self.c8], [self.c3, self.c6, self.c9]])
+        self.vert = self.matrix.sum(axis=0)
+        self.hor = self.matrix.sum(axis=1)
+        self.d1 = np.trace(self.matrix)
+        self.d2 = np.fliplr(self.matrix).trace()
 
-c1 = 0
-c2 = 0
-c3 = 0
-c4 = 0
-c5 = 0
-c6 = 0
-c7 = 0
-c8 = 0
-c9 = 0
-no_of_moves = 0
+        self.message_box = ctypes.windll.user32.MessageBoxW
 
-x_click = 0
-y_click = 0
+    def grid_formation(self):
+        self.grid.goto(-300, 300)
+        self.grid.pendown()
+        for i in range(4):
+            self.grid.forward(600)
+            self.grid.right(90)
+            for j in range(4):
+                self.grid.forward(200)
+                self.grid.right(90)
+        self.grid.penup()
+        self.grid.goto(-100, 100)
+        self.grid.pendown()
+        for k in range(4):
+            self.grid.forward(200)
+            self.grid.right(90)
+        self.grid.penup()
 
-matrix = np.array([[c1, c4, c7], [c2, c5, c8], [c3, c6, c9]])
-vert = matrix.sum(axis=0)
-hor = matrix.sum(axis=1)
-d1 = np.trace(matrix)
-d2 = np.fliplr(matrix).trace()
+    def cross(self, x, y):
+        self.grid.goto(x, y)
+        self.grid.pendown()
+        self.grid.goto(x + 200, y + 200)
+        self.grid.goto(x, y + 200)
+        self.grid.goto(x + 200, y)
+        self.grid.penup()
+        self.no_of_moves += 1
+        if self.shape == 0:
+            self.shape = 1
+        else:
+            self.shape = 0
+        self.update_matrices()
+        self.win()
+        self.mouse.click(Button.left, 2)
 
+    def circle(self, x, y):
+        self.grid.goto(x, y)
+        self.grid.pendown()
+        self.grid.circle(100)
+        self.grid.penup()
+        self.no_of_moves += 1
+        if self.shape == 0:
+            self.shape = 1
+        else:
+            self.shape = 0
+        self.update_matrices()
+        self.win()
+        self.mouse.click(Button.left, 2)
 
-def win():
-    global p_cross, p_circle
-    for index in vert:
-        if index == 3:
-            p_cross = 1
-        elif index == -3:
-            p_circle = 1
-    for index in hor:
-        if index == 3:
-            p_cross = 1
-        elif index == -3:
-            p_circle = 1
-    if d1 == 3 or d2 == 3:
-        p_cross = 1
-    elif d1 == -3 or d2 == -3:
-        p_circle = 1
+    def make_circle(self):
+        if -300 < self.x_click < -100 and 100 < self.y_click < 300 and self.c1 == 0:
+            self.c1 = -1
+            self.circle(-200, 100)
 
+        if -300 < self.x_click < -100 and -100 < self.y_click < 100 and self.c2 == 0:
+            self.c2 = -1
+            self.circle(-200, -100)
 
-def score_reset():
-    global c1, c2, c3, c4, c5, c6, c7, c8, c9, p_circle, p_cross
-    c1, c2, c3, c4, c5, c6, c7, c8, c9, p_circle, p_cross = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    update_matrices()
-    wn.clearscreen()
-    wn.bgcolor("black")
-    wn.tracer(0)
-    wn.listen()
-    grid_formation()
-    grid_formation()
-    wn.onscreenclick(modify_global_variables)
+        if -300 < self.x_click < -100 and -300 < self.y_click < -100 and self.c3 == 0:
+            self.c3 = -1
+            self.circle(-200, -300)
 
+        if -100 < self.x_click < 100 and 100 < self.y_click < 300 and self.c4 == 0:
+            self.c4 = -1
+            self.circle(0, 100)
 
-def match_winner_declaration():
-    message_box = ctypes.windll.user32.MessageBoxW
-    if p_cross == 1:
-        message_box(None, 'Player cross wins!', 'Match Result', 0)
-    if p_circle == 1:
-        message_box(None, 'Player circle wins!', 'Match Result', 0)
+        if -100 < self.x_click < 100 and -100 < self.y_click < 100 and self.c5 == 0:
+            self.c5 = -1
+            self.circle(0, -100)
 
+        if -100 < self.x_click < 100 and -300 < self.y_click < -100 and self.c6 == 0:
+            self.c6 = -1
+            self.circle(0, -300)
 
-def update_matrices():
-    global matrix, vert, hor, d1, d2
-    matrix = np.array([[c1, c4, c7], [c2, c5, c8], [c3, c6, c9]])
-    vert = matrix.sum(axis=0)
-    hor = matrix.sum(axis=1)
-    d1 = np.trace(matrix)
-    d2 = np.fliplr(matrix).trace()
+        if 100 < self.x_click < 300 and 100 < self.y_click < 300 and self.c7 == 0:
+            self.c7 = -1
+            self.circle(200, 100)
 
+        if 100 < self.x_click < 300 and -100 < self.y_click < 100 and self.c8 == 0:
+            self.c8 = -1
+            self.circle(200, -100)
 
-def cross(x, y):
-    global no_of_moves, shape
-    grid.goto(x, y)
-    grid.pendown()
-    grid.goto(x + 200, y + 200)
-    grid.goto(x, y + 200)
-    grid.goto(x + 200, y)
-    grid.penup()
-    no_of_moves += 1
-    if shape == 0:
-        shape = 1
-    else:
-        shape = 0
-    update_matrices()
-    win()
-    mouse.click(Button.left, 2)
+        if 100 < self.x_click < 300 and -300 < self.y_click < -100 and self.c9 == 0:
+            self.c9 = -1
+            self.circle(200, -300)
 
+    def make_cross(self):
+        if -300 < self.x_click < -100 and 100 < self.y_click < 300 and self.c1 == 0:
+            self.c1 = 1
+            self.cross(-300, 100)
 
-def circle(x, y):
-    global no_of_moves, shape
-    grid.goto(x, y)
-    grid.pendown()
-    grid.circle(100)
-    grid.penup()
-    no_of_moves += 1
-    if shape == 0:
-        shape = 1
-    else:
-        shape = 0
-    update_matrices()
-    win()
-    mouse.click(Button.left, 2)
+        if -300 < self.x_click < -100 and -100 < self.y_click < 100 and self.c2 == 0:
+            self.c2 = 1
+            self.cross(-300, -100)
 
+        if -300 < self.x_click < -100 and -300 < self.y_click < -100 and self.c3 == 0:
+            self.c3 = 1
+            self.cross(-300, -300)
 
-def modify_global_variables(raw_x, raw_y):
-    global x_click
-    global y_click
-    x_click = int(raw_x // 1)
-    y_click = int(raw_y // 1)
+        if -100 < self.x_click < 100 and 100 < self.y_click < 300 and self.c4 == 0:
+            self.c4 = 1
+            self.cross(-100, 100)
 
-    global shape
-    if shape == 1 and p_cross == 0 and p_circle == 0:
+        if -100 < self.x_click < 100 and -100 < self.y_click < 100 and self.c5 == 0:
+            self.c5 = 1
+            self.cross(-100, -100)
 
-        def make_cross():
-            global c1, c2, c3, c4, c5, c6, c7, c8, c9
-            if -300 < x_click < -100 and 100 < y_click < 300 and c1 == 0:
-                c1 = 1
-                cross(-300, 100)
+        if -100 < self.x_click < 100 and -300 < self.y_click < -100 and self.c6 == 0:
+            self.c6 = 1
+            self.cross(-100, -300)
 
-            if -300 < x_click < -100 and -100 < y_click < 100 and c2 == 0:
-                c2 = 1
-                cross(-300, -100)
+        if 100 < self.x_click < 300 and 100 < self.y_click < 300 and self.c7 == 0:
+            self.c7 = 1
+            self.cross(100, 100)
 
-            if -300 < x_click < -100 and -300 < y_click < -100 and c3 == 0:
-                c3 = 1
-                cross(-300, -300)
+        if 100 < self.x_click < 300 and -100 < self.y_click < 100 and self.c8 == 0:
+            self.c8 = 1
+            self.cross(100, -100)
 
-            if -100 < x_click < 100 and 100 < y_click < 300 and c4 == 0:
-                c4 = 1
-                cross(-100, 100)
+        if 100 < self.x_click < 300 and -300 < self.y_click < -100 and self.c9 == 0:
+            self.c9 = 1
+            self.cross(100, -300)
 
-            if -100 < x_click < 100 and -100 < y_click < 100 and c5 == 0:
-                c5 = 1
-                cross(-100, -100)
+    def update_matrices(self):
+        self.matrix = np.array([[self.c1, self.c4, self.c7], [self.c2, self.c5, self.c8], [self.c3, self.c6, self.c9]])
+        self.vert = self.matrix.sum(axis=0)
+        self.hor = self.matrix.sum(axis=1)
+        self.d1 = np.trace(self.matrix)
+        self.d2 = np.fliplr(self.matrix).trace()
 
-            if -100 < x_click < 100 and -300 < y_click < -100 and c6 == 0:
-                c6 = 1
-                cross(-100, -300)
+    def win(self):
+        for index in self.vert:
+            if index == 3:
+                self.p_cross = 1
+            elif index == -3:
+                self.p_circle = 1
+        for index in self.hor:
+            if index == 3:
+                self.p_cross = 1
+            elif index == -3:
+                self.p_circle = 1
+        if self.d1 == 3 or self.d2 == 3:
+            self.p_cross = 1
+        elif self.d1 == -3 or self.d2 == -3:
+            self.p_circle = 1
 
-            if 100 < x_click < 300 and 100 < y_click < 300 and c7 == 0:
-                c7 = 1
-                cross(100, 100)
+    def score_reset(self):
+        self.c1, self.c2, self.c3, self.c4, self.c5, self.c6, self.c7, self.c8, self.c9, self.p_circle, self.p_cross = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        self.update_matrices()
+        self.wn.clearscreen()
+        self.wn.bgcolor("black")
+        self.wn.tracer(0)
+        self.wn.listen()
+        self.grid_formation()
+        self.grid_formation()
+        self.wn.onscreenclick(self.modify_global_variables)
 
-            if 100 < x_click < 300 and -100 < y_click < 100 and c8 == 0:
-                c8 = 1
-                cross(100, -100)
+    def match_winner_declaration(self):
+        if self.p_cross == 1:
+            self.message_box(None, 'Player cross wins!', 'Match Result', 0)
+        if self.p_circle == 1:
+            self.message_box(None, 'Player circle wins!', 'Match Result', 0)
 
-            if 100 < x_click < 300 and -300 < y_click < -100 and c9 == 0:
-                c9 = 1
-                cross(100, -300)
+    def modify_global_variables(self, raw_x, raw_y):
+        self.x_click = int(raw_x // 1)
+        self.y_click = int(raw_y // 1)
 
-        return make_cross()
-    elif shape == 0 and p_cross == 0 and p_circle == 0:
-
-        def make_circle():
-            global c1, c2, c3, c4, c5, c6, c7, c8, c9
-            if -300 < x_click < -100 and 100 < y_click < 300 and c1 == 0:
-                c1 = -1
-                circle(-200, 100)
-
-            if -300 < x_click < -100 and -100 < y_click < 100 and c2 == 0:
-                c2 = -1
-                circle(-200, -100)
-
-            if -300 < x_click < -100 and -300 < y_click < -100 and c3 == 0:
-                c3 = -1
-                circle(-200, -300)
-
-            if -100 < x_click < 100 and 100 < y_click < 300 and c4 == 0:
-                c4 = -1
-                circle(0, 100)
-
-            if -100 < x_click < 100 and -100 < y_click < 100 and c5 == 0:
-                c5 = -1
-                circle(0, -100)
-
-            if -100 < x_click < 100 and -300 < y_click < -100 and c6 == 0:
-                c6 = -1
-                circle(0, -300)
-
-            if 100 < x_click < 300 and 100 < y_click < 300 and c7 == 0:
-                c7 = -1
-                circle(200, 100)
-
-            if 100 < x_click < 300 and -100 < y_click < 100 and c8 == 0:
-                c8 = -1
-                circle(200, -100)
-
-            if 100 < x_click < 300 and -300 < y_click < -100 and c9 == 0:
-                c9 = -1
-                circle(200, -300)
-
-        return make_circle()
-    else:
-        match_winner_declaration()
-        score_reset()
+        if self.shape == 1 and self.p_cross == 0 and self.p_circle == 0:
+            return self.make_cross()
+        elif self.shape == 0 and self.p_cross == 0 and self.p_circle == 0:
+            return self.make_circle()
+        else:
+            self.match_winner_declaration()
+            self.score_reset()
 
 
-grid_formation()
-wn.onscreenclick(modify_global_variables)
-wn.mainloop()
+tic_tac_toe = Game()
+
+tic_tac_toe.grid_formation()
+tic_tac_toe.wn.onscreenclick(tic_tac_toe.modify_global_variables)
+tic_tac_toe.wn.mainloop()
